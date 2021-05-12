@@ -2,14 +2,20 @@
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 import os.path
+import numpy as np
 import nltk
 from nltk.corpus import stopwords
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-file_directory = "D:\\news_scrap\\202105111507\\"
+file_directory = "D:\\news_scrap\\202105121459\\"
 category_1 = ""
 category_2 = ""
 
 file_index = 1
+
+category_list = []
+sentences = []
 
 for i in range(10000):
     file = file_directory + str(file_index) + ".txt"
@@ -28,4 +34,28 @@ for i in range(10000):
         text = f.read()
         print(text)
 
+        category_list.append([category_1, category_2])
+        sentences.append(text.split(' '))
+
     file_index = file_index + 1
+
+#print(text_list)
+print(sentences)
+
+tokenizer = Tokenizer()
+tokenizer.fit_on_texts(sentences)
+
+print("##########")
+print(tokenizer.word_index)
+print("##########")
+print(tokenizer.word_counts)
+print("##########")
+encoded = tokenizer.texts_to_sequences(sentences)
+print(encoded)
+print("##########")
+
+max_len = max(len(item) for item in encoded)
+print(max_len)
+
+padded = pad_sequences(encoded, padding='post', maxlen=max_len)
+print(padded)
