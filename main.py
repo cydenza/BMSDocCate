@@ -3,6 +3,7 @@
 
 import os.path
 import numpy as np
+import pandas as pd
 import nltk
 from nltk.corpus import stopwords
 from tensorflow.keras.preprocessing.text import Tokenizer
@@ -34,7 +35,7 @@ for i in range(10000):
         text = f.read()
         print(text)
 
-        category_list.append([category_1, category_2])
+        category_list.append(category_2)
         sentences.append(text.split(' '))
 
     file_index = file_index + 1
@@ -55,7 +56,18 @@ print(encoded)
 print("##########")
 
 max_len = max(len(item) for item in encoded)
-print(max_len)
+print(max_len)      # 최대 단어 길이
 
 padded = pad_sequences(encoded, padding='post', maxlen=max_len)
 print(padded)
+
+print("##########")
+
+dataList = []
+
+for index, category in enumerate(category_list):
+    dataList.append([padded[index], category])
+print(dataList)
+
+dataF = pd.DataFrame(dataList) #, padded) #, columns=['category', 'data'])
+print(dataF)
