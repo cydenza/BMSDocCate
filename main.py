@@ -8,8 +8,10 @@ import nltk
 from nltk.corpus import stopwords
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-file_directory = "D:\\news_scrap\\202105121459\\"
+file_directory = "D:\\news_scrap\\202105161627\\"
 category_1 = ""
 category_2 = ""
 
@@ -40,7 +42,7 @@ for i in range(10000):
 
     file_index = file_index + 1
 
-#print(text_list)
+# print(text_list)
 print(sentences)
 
 tokenizer = Tokenizer()
@@ -56,7 +58,7 @@ print(encoded)
 print("##########")
 
 max_len = max(len(item) for item in encoded)
-print(max_len)      # 최대 단어 길이
+print(max_len)  # 최대 단어 길이
 
 padded = pad_sequences(encoded, padding='post', maxlen=max_len)
 print(padded)
@@ -69,5 +71,38 @@ for index, category in enumerate(category_list):
     dataList.append([padded[index], category])
 print(dataList)
 
-dataF = pd.DataFrame(dataList) #, padded) #, columns=['category', 'data'])
+dataF = pd.DataFrame(dataList, columns=['data', 'category'])
 print(dataF)
+
+X_train = dataF.data
+Y_train = dataF.category
+
+print("######### X-Train #############\n", X_train)
+print("######### Y-Train #############\n", X_train)
+
+print('훈련용 뉴스 기사 갯수 : {}'.format(len(X_train)))
+print('훈련용 카테고리 갯수 : {}'.format(len(Y_train)))
+#print('테스트용 뉴스 기사 : {}'.format(len(X_test)))
+
+"""
+# 위에서 맥스 길이를 맞춰서 패딩을 했기 때문에 아레는 의미없다.
+print('뉴스 기사의 최대 길이 :{}'.format(max(len(l) for l in X_train)))
+print('뉴스 기사의 평균 길이 :{}'.format(sum(map(len, X_train))/len(X_train)))
+
+plt.hist([len(s) for s in X_train], bins=50)
+plt.xlabel('length of samples')
+plt.ylabel('number of samples')
+plt.show()
+"""
+
+"""
+# 기사가 속한 카테고리 값을 본다.
+fig, axe = plt.subplots(ncols=1)
+fig.set_size_inches(12,5)
+sns.countplot(Y_train)
+"""
+
+unique_elements, counts_elements = np.unique(Y_train, return_counts=True)
+print("각 레이블에 대한 빈도수:")
+print(np.asarray((unique_elements, counts_elements)))
+
