@@ -6,27 +6,39 @@ import numpy as np
 import pandas as pd
 import nltk
 from nltk.corpus import stopwords
+import tensorflow as tf
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.layers import Dense, LSTM, Embedding
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-file_directory = "D:\\news_scrap\\202105161627\\"
-category_1 = ""
-category_2 = ""
+file_directory = "D:\\news_scrap\\202105121459\\"
+
+category_2_dict = {}
+category_index = 0
+category_list = []
 
 file_index = 1
 
-category_list = []
 sentences = []
 
-for i in range(10000):
-    file = file_directory + str(file_index) + ".txt"
 
-    if not os.path.isfile(file):
-        print("### FILE NOT FOUND!", file)
-        break
+def GetCategoryIndex(cate):
+    global category_index
+    catidx = category_2_dict.get(cate)
+    print("## catidx : ", catidx)
+    if catidx is None:
+        category_2_dict[cate] = category_index
+        catidx = category_index
+        category_index = category_index + 1
+    return catidx
 
+
+def ReadTextFileToSentence(file):
     with open(file, 'r', encoding='UTF-8') as f:
         category_1 = f.readline()
         category_1 = category_1.strip()
@@ -37,8 +49,19 @@ for i in range(10000):
         text = f.read()
         print(text)
 
-        category_list.append(category_2)
+        catidx = GetCategoryIndex(category_2)
+        category_list.append(catidx)
         sentences.append(text.split(' '))
+
+
+for i in range(10000):
+    file = file_directory + str(file_index) + ".txt"
+
+    if not os.path.isfile(file):
+        print("### FILE NOT FOUND!", file)
+        break
+
+    ReadTextFileToSentence(file)
 
     file_index = file_index + 1
 
@@ -60,25 +83,36 @@ print("##########")
 max_len = max(len(item) for item in encoded)
 print(max_len)  # 최대 단어 길이
 
+print("########## padded : \n")
 padded = pad_sequences(encoded, padding='post', maxlen=max_len)
 print(padded)
 
-print("##########")
-
 dataList = []
+cateList = []
 
 for index, category in enumerate(category_list):
-    dataList.append([padded[index], category])
+    #dataList.append([padded[index], category])
+    dataList.append(padded[index])
+    cateList.append(category)
+print("########## datalist : \n")
 print(dataList)
+print("########## cateList : \n")
+print(cateList)
 
-dataF = pd.DataFrame(dataList, columns=['data', 'category'])
-print(dataF)
+#dataF = pd.DataFrame(dataList, columns=['data', 'category'])
+#print(dataF)
 
-X_train = dataF.data
-Y_train = dataF.category
+#X_train = dataF.data
+#Y_train = dataF.category
+#X_train = np.array(padded) # dataList
+X_train = padded
+Y_train = cateList
+
+print("### X_train type 1 : ", type(X_train))
+print("### Y_train type 1 : ", type(Y_train))
 
 print("######### X-Train #############\n", X_train)
-print("######### Y-Train #############\n", X_train)
+print("######### Y-Train #############\n", Y_train)
 
 print('훈련용 뉴스 기사 갯수 : {}'.format(len(X_train)))
 print('훈련용 카테고리 갯수 : {}'.format(len(Y_train)))
@@ -106,3 +140,37 @@ unique_elements, counts_elements = np.unique(Y_train, return_counts=True)
 print("각 레이블에 대한 빈도수:")
 print(np.asarray((unique_elements, counts_elements)))
 
+print("### Y_Train ###\n", Y_train)
+Y_train = to_categorical(Y_train)
+print("### Y_train ###\n", Y_train)
+print("### Y_train type : ", type(Y_train))
+
+catlen = len(category_list)
+print("### catlen : ", catlen)
+
+"""
+model = Sequential()
+model.add(Embedding(1000, 120))
+model.add(LSTM(120))
+model.add(Dense(catlen, activation='softmax'))
+"""
+
+#X_train = X_train.tolist()
+print("# X-train Len : ", len(X_train[0]))
+print("#### X-train 2 : \n", X_train)
+
+model = Sequential([
+    tf.keras.layers.Embedding(len(X_train[0]), 1),    #, input_length=ndim),
+    tf.keras.layers.LSTM(units=50),
+    tf.keras.layers.Dense(len(Y_train), activation='softmax')
+])
+
+es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=4)
+mc = ModelCheckpoint('best_model.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
+
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
+
+print(type(X_train))
+print(type(Y_train))
+
+history = model.fit(X_train, Y_train, batch_size=128, epochs=5, callbacks=[es, mc])
