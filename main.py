@@ -70,12 +70,10 @@ print(sentences)
 
 tokenizer = Tokenizer()
 tokenizer.fit_on_texts(sentences)
-
-print("##########")
-print(tokenizer.word_index)
-print("##########")
-print(tokenizer.word_counts)
-print("##########")
+vocab_size = len(tokenizer.word_index) + 1
+print("# vocab_size : ", vocab_size)
+print("# word_count : ", tokenizer.word_counts)
+print("### encoded : \n")
 encoded = tokenizer.texts_to_sequences(sentences)
 print(encoded)
 print("##########")
@@ -160,7 +158,7 @@ print("# X-train Len : ", len(X_train[0]))
 print("#### X-train 2 : \n", X_train)
 
 model = Sequential([
-    tf.keras.layers.Embedding(len(X_train[0]), 1),    #, input_length=ndim),
+    tf.keras.layers.Embedding(vocab_size, 100),    #, input_length=ndim),
     tf.keras.layers.LSTM(units=50),
     tf.keras.layers.Dense(len(Y_train), activation='softmax')
 ])
