@@ -16,7 +16,7 @@ from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-file_directory = "D:\\news_scrap\\202105121459\\"
+file_directory = "D:\\news_scrap\\202105101818\\"
 
 category_2_dict = {}
 category_index = 0
@@ -140,6 +140,7 @@ print(np.asarray((unique_elements, counts_elements)))
 
 print("### Y_Train ###\n", Y_train)
 Y_train = to_categorical(Y_train)
+
 print("### Y_train ###\n", Y_train)
 print("### Y_train type : ", type(Y_train))
 
@@ -154,21 +155,41 @@ model.add(Dense(catlen, activation='softmax'))
 """
 
 #X_train = X_train.tolist()
-print("# X-train Len : ", len(X_train[0]))
+x_len = len(X_train[0])
+print("# X-train Len : ", x_len)
 print("#### X-train 2 : \n", X_train)
 
 model = Sequential([
-    tf.keras.layers.Embedding(vocab_size, 100),    #, input_length=ndim),
+    tf.keras.layers.Embedding(vocab_size, 100, input_length=x_len),
     tf.keras.layers.LSTM(units=50),
-    tf.keras.layers.Dense(len(Y_train), activation='softmax')
+    tf.keras.layers.Dense(category_index, activation='softmax')
 ])
 
 es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=4)
 mc = ModelCheckpoint('best_model.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
 
-model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+#model.compile(loss='categorical_crossentropy', optimizer=tf.keras.optimizers.Adam(lr=0.07), metrics=['accuracy'])
+model.summary()
 
 print(type(X_train))
 print(type(Y_train))
 
-history = model.fit(X_train, Y_train, batch_size=128, epochs=5, callbacks=[es, mc])
+history = model.fit(X_train, Y_train, batch_size=128, epochs=5, validation_split=0.25, callbacks=[es, mc])
+
+plt.figure(figsize=(12,4))
+plt.subplot(1,2,1)
+plt.plot(history.history['loss'], 'b-', label="loss")
+plt.plot(history.history['val_loss'], 'r--', label='val_loss')
+plt.xlabel('Epoch')
+plt.legend()
+
+plt.subplot(1,2,2)
+plt.plot(history.history['accuracy'], 'g-', label="accuracy")
+plt.plot(history.history['val_accuracy'], 'k--', label='val_accuracy')
+plt.xlabel('Epoch')
+plt.ylim(0, 1)
+plt.legend()
+
+plt.show()
+
