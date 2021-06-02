@@ -16,7 +16,11 @@ from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-file_directory = "D:\\news_scrap\\202105101818\\"
+## 그램 Path
+#file_directory = "D:\\news_scrap\\202105101818\\"
+
+## 대영 Path
+file_directory = "C:\\Users\\cydenza\\news_scrap\\202105311857\\"
 
 category_2_dict = {}
 category_index = 0
@@ -26,6 +30,15 @@ file_index = 1
 
 sentences = []
 
+"""
+### GPU 사용 확인 코드
+from tensorflow.python.client import device_lib
+print(device_lib.list_local_devices())
+print(tf.reduce_sum(tf.random.normal([1000, 1000])))
+print(tf.__version__)
+print(tf.config.list_physical_devices('GPU'))
+quit()
+"""
 
 def GetCategoryIndex(cate):
     global category_index
