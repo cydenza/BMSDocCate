@@ -13,6 +13,7 @@ from tensorflow.keras.layers import Dense, LSTM, Embedding
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.keras.models import load_model
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -138,6 +139,9 @@ if Is_NewTaining is True:
     X_train = padded
     Y_train = cateList
 
+    X_train = np.array(X_train)
+    Y_train = np.array(Y_train)
+
     print("### X_train type 1 : ", type(X_train))
     print("### Y_train type 1 : ", type(Y_train))
 
@@ -212,7 +216,10 @@ if Is_NewTaining is True:
     print(type(X_train))
     print(type(Y_train))
 
-    history = model.fit(X_train, Y_train, batch_size=128, epochs=5, validation_split=0.25, callbacks=[es, mc])
+    history = model.fit(X_train, Y_train, batch_size=128, epochs=3, validation_split=0.25, callbacks=[es, mc])
+
+    loaded_model = load_model('best_model.h5')
+    print("\n 테스트 정확도: %.4f" % (loaded_model.evaluate(X_train, Y_train)[1]))
 
     plt.figure(figsize=(12, 4))
     plt.subplot(1, 2, 1)
@@ -234,13 +241,20 @@ else:
 
 # 테스트 데이터 평가
 testY = GetCategoryIndex(testY)
+testY = np.array(testY)
 print("# TestY : ", testY)
 testX = tokenizer.texts_to_sequences(testX)
 print("# TestX : ", testX)
 testX = pad_sequences(testX, padding='post')
+testX = np.array(testX)
 print(testX)
 print("# TestX : ", testX)
-#model.evaluate(testX, [testY])
+
+testX = np.expand_dims(testX,0)
+print(testX.shape)
 predict = model.predict(testX)
+print("# predict max : ", np.argmax(predict[0]))
+print("# testY ", testY)
+#model.evaluate(testX, testY)
 print("$$$$$$$$ PREDICT : ", predict)
 
