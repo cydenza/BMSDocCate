@@ -203,7 +203,7 @@ if Is_NewTaining is True:
     ])
     """
     model.add(Embedding(vocab_size, 100, input_length=x_len))
-    model.add(LSTM(units=50))
+    model.add(LSTM(units=120))
     model.add(Dense(category_index, activation='softmax'))
 
     es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=4)
@@ -216,10 +216,10 @@ if Is_NewTaining is True:
     print(type(X_train))
     print(type(Y_train))
 
-    history = model.fit(X_train, Y_train, batch_size=128, epochs=3, validation_split=0.25, callbacks=[es, mc])
+    history = model.fit(X_train, Y_train, batch_size=128, epochs=5, validation_split=0.25, callbacks=[es, mc])
 
-    loaded_model = load_model('best_model.h5')
-    print("\n 테스트 정확도: %.4f" % (loaded_model.evaluate(X_train, Y_train)[1]))
+    #loaded_model = load_model('best_model.h5')
+    #print("\n 테스트 정확도: %.4f" % (loaded_model.evaluate(X_train, Y_train)[1]))
 
     plt.figure(figsize=(12, 4))
     plt.subplot(1, 2, 1)
