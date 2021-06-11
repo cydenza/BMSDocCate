@@ -14,6 +14,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.models import load_model
+from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -88,7 +89,7 @@ model = Sequential()
 
 if Is_NewTaining is True:
     # 파일에서 학습 데이터를 가져온다.
-    for i in range(2000):
+    for i in range(20000):
         file = file_directory + str(file_index) + ".txt"
 
         if not os.path.isfile(file):
@@ -209,14 +210,15 @@ if Is_NewTaining is True:
     es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=4)
     mc = ModelCheckpoint('best_model.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
 
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
     #model.compile(loss='categorical_crossentropy', optimizer=tf.keras.optimizers.Adam(lr=0.07), metrics=['accuracy'])
     model.summary()
 
     print(type(X_train))
     print(type(Y_train))
 
-    history = model.fit(X_train, Y_train, batch_size=128, epochs=5, validation_split=0.25, callbacks=[es, mc])
+    x_tr, x_test, y_tr, y_test = train_test_split(X_train, Y_train, test_size=0.25, random_state=11) #, stratify=Y_train)
+    history = model.fit(x_tr, y_tr, batch_size=128, epochs=5, validation_split=0.25, callbacks=[es, mc])
 
     #loaded_model = load_model('best_model.h5')
     #print("\n 테스트 정확도: %.4f" % (loaded_model.evaluate(X_train, Y_train)[1]))
@@ -229,8 +231,8 @@ if Is_NewTaining is True:
     plt.legend()
 
     plt.subplot(1, 2, 2)
-    plt.plot(history.history['accuracy'], 'g-', label="accuracy")
-    plt.plot(history.history['val_accuracy'], 'k--', label='val_accuracy')
+    plt.plot(history.history['acc'], 'g-', label="accuracy")
+    plt.plot(history.history['val_acc'], 'k--', label='val_accuracy')
     plt.xlabel('Epoch')
     plt.ylim(0, 1)
     plt.legend()
@@ -255,6 +257,11 @@ print(testX.shape)
 predict = model.predict(testX)
 print("# predict max : ", np.argmax(predict[0]))
 print("# testY ", testY)
-#model.evaluate(testX, testY)
 print("$$$$$$$$ PREDICT : ", predict)
 
+score = model.evaluate(x_test, y_test)
+print("### Test Score :", score[0])
+print("### Test Accuracy : ", score[1])
+
+for i in category_2_dict:
+    print("#{} : ", i)
